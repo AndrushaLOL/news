@@ -9,12 +9,13 @@ from news.utils import CleanText
 
 class RiaSpider(scrapy.Spider):
     urls = {
-        'politics': 'http://ria.ru/services/politics/more.html?id=1547985429&date=20181214T131501',
-        'society': 'http://ria.ru/services/society/more.html?id=1548005108&date=20181214T170400',
-        'world': 'http://ria.ru/services/world/more.html?id=1548006110&date=20181214T171920',
-        'science': 'http://ria.ru/services/science/more.html?id=1547967537&date=20181214T082615',
-        'culture': 'http://ria.ru/services/culture/more.html?id=1547952810&date=20181213T185932',
-        'religion': 'http://ria.ru/services/religion/more.html?id=1547937808&date=20181213T155344'
+        'politics': 'http://ria.ru/services/politics/more.html',
+        'society': 'http://ria.ru/services/society/more.html',
+        'world': 'http://ria.ru/services/world/more.html',
+        'science': 'http://ria.ru/services/science/more.html',
+        'culture': 'http://ria.ru/services/culture/more.html',
+        'religion': 'http://ria.ru/services/religion/more.html',
+        'economy': 'ttp://ria.ru/services/economy/more.html'
     }
 
     name = 'ria'
@@ -52,14 +53,23 @@ class RiaSpider(scrapy.Spider):
         title = response.xpath(self.XPATH_TO_TITLE).extract_first()
         text = ' '.join(response.css('.article__text::text').extract())
 
+        news_raw = News()
+        news_raw['label'] = response.meta['label']
+        news_raw['title'] = title
+        news_raw['text'] = text
+        news_raw['url'] = response.url
+
         text = self.normalizer.clean_text(text)
         title = self.normalizer.clean_text(title)
 
-        news = News()
-        news['label'] = response.meta['label']
-        news['title'] = title
-        news['text'] = text
-        news['url'] = response.url
+        news_clean = News()
+        news_clean['label'] = response.meta['label']
+        news_clean['title'] = title
+        news_clean['text'] = text
+        news_clean['url'] = response.url
 
         if text:
-            yield news
+            yield {
+                'raw': news_raw,
+                'clean': news_clean
+            }
